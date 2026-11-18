@@ -52,6 +52,9 @@ function requireAdmin(req, res, next) {
     next();
 }
 
+// Прямой псевдоним middleware для админских маршрутов.
+const isAdmin = requireAdmin;
+
 // -------------------------------------------------------------
 // AUTH ROUTES
 // -------------------------------------------------------------
@@ -224,6 +227,81 @@ app.get('/api/user/receipts', authenticateToken, (req, res) => {
 // -------------------------------------------------------------
 // ADMIN ROUTES
 // -------------------------------------------------------------
+
+// GET /api/admin/revenue - Revenue analytics for a selected period
+app.get('/api/admin/revenue', authenticateToken, isAdmin, (req, res) => {
+    try {
+        const period = ['week', 'month', 'year'].includes(req.query.period)
+            ? req.query.period
+            : 'month';
+
+        // TODO: Replace these mock datasets with SQL/MongoDB aggregation queries.
+        // Example: aggregate completed receipts by period and calculate revenue, sessions,
+        // occupancy and average check from your transactions table.
+        const mockRevenue = {
+            week: {
+                totalRevenue: 286000,
+                growthPercentage: 12.4,
+                totalSessions: 54,
+                occupancyRate: 68,
+                averageCheck: 5296,
+                chartData: {
+                    labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+                    values: [28000, 35000, 42000, 39000, 51000, 47000, 44000]
+                }
+            },
+            month: {
+                totalRevenue: 1248000,
+                growthPercentage: 18.7,
+                totalSessions: 238,
+                occupancyRate: 74,
+                averageCheck: 5244,
+                chartData: {
+                    labels: ['1–5', '6–10', '11–15', '16–20', '21–25', '26–31'],
+                    values: [138000, 192000, 176000, 228000, 254000, 260000]
+                }
+            },
+            year: {
+                totalRevenue: 14860000,
+                growthPercentage: 24.2,
+                totalSessions: 2864,
+                occupancyRate: 71,
+                averageCheck: 5189,
+                chartData: {
+                    labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
+                    values: [920000, 980000, 1040000, 1120000, 1180000, 1240000, 1290000, 1330000, 1310000, 1450000, 1510000, 960000]
+                }
+            }
+        };
+
+        const receipts = db.getReceipts();
+        const recentTransactions = (receipts.length ? receipts : [
+            { carPlate: '01 A 777 AA', durationFormatted: '2 ч 15 мин', totalAmount: 16000, status: 'Оплачено', createdAt: new Date().toISOString() },
+            { carPlate: '10 B 204 BB', durationFormatted: '1 ч 30 мин', totalAmount: 8000, status: 'Оплачено', createdAt: new Date(Date.now() - 3600000).toISOString() },
+            { carPlate: '90 C 315 CC', durationFormatted: '3 ч 05 мин', totalAmount: 24000, status: 'Оплачено', createdAt: new Date(Date.now() - 7200000).toISOString() },
+            { carPlate: '01 D 908 DD', durationFormatted: '45 мин', totalAmount: 5000, status: 'Оплачено', createdAt: new Date(Date.now() - 10800000).toISOString() },
+            { carPlate: '30 E 126 EE', durationFormatted: '2 ч 00 мин', totalAmount: 16000, status: 'Возврат', createdAt: new Date(Date.now() - 14400000).toISOString() }
+        ]).slice(0, 5).map(receipt => ({
+            plateNumber: receipt.carPlate || receipt.plateNumber,
+            duration: receipt.durationFormatted || receipt.duration || '—',
+            amount: receipt.totalAmount || receipt.amount || 0,
+            status: receipt.status || 'Оплачено',
+            createdAt: receipt.createdAt
+        }));
+
+        res.json({
+            ...mockRevenue[period],
+            recentTransactions
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// GET /admin/dashboard - Protected revenue dashboard page
+app.get('/admin/dashboard', authenticateToken, isAdmin, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin-dashboard.html'));
+});
 
 // GET /api/admin/stats - Overview statistics
 app.get('/api/admin/stats', authenticateToken, requireAdmin, (req, res) => {

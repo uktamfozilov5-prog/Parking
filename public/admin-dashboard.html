@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartPark — Панель выручки</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { min-height: 100vh; }
+        .revenue-dashboard { max-width: 1180px; margin: 0 auto; padding: 42px 24px; }
+        .revenue-header { display:flex; justify-content:space-between; align-items:center; gap:20px; margin-bottom:24px; }
+        .period-switcher { display:flex; gap:8px; background:rgba(255,255,255,.05); padding:5px; border-radius:12px; }
+        .period-btn { border:0; color:var(--text-muted); background:transparent; padding:9px 16px; border-radius:8px; cursor:pointer; font-weight:700; }
+        .period-btn.active { color:#fff; background:var(--purple-primary); box-shadow:0 8px 20px var(--purple-glow); }
+        .revenue-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:18px; }
+        .revenue-card { background:var(--bg-card); border:1px solid var(--border-light); border-radius:16px; padding:20px; }
+        .revenue-card-label { color:var(--text-muted); font-size:12px; font-weight:700; }
+        .revenue-card-value { display:block; margin-top:8px; font-size:26px; font-weight:800; }
+        .growth-positive { color:#34d399; font-size:12px; }
+        .chart-panel { background:var(--bg-card); border:1px solid var(--border-light); border-radius:16px; padding:22px; margin-bottom:18px; }
+        .chart-wrap { height:330px; }
+        .dashboard-error { display:none; color:#fb7185; padding:12px; }
+        @media (max-width:900px) { .revenue-stats{grid-template-columns:repeat(2,1fr)} }
+        @media (max-width:560px) { .revenue-header{align-items:flex-start; flex-direction:column}.revenue-stats{grid-template-columns:1fr}.revenue-dashboard{padding:24px 14px}.chart-wrap{height:260px} }
+    </style>
+</head>
+<body>
+    <div class="ambient-glow glow-1"></div>
+    <main class="revenue-dashboard">
+        <header class="revenue-header">
+            <div>
+                <h1 class="view-title">📈 Дашборд выручки</h1>
+                <p class="view-subtitle">Финансовая аналитика парковочной системы</p>
+            </div>
+            <div class="period-switcher" aria-label="Период отчёта">
+                <button class="period-btn" data-period="week">Неделя</button>
+                <button class="period-btn active" data-period="month">Месяц</button>
+                <button class="period-btn" data-period="year">Год</button>
+            </div>
+        </header>
+
+        <div id="dashboard-error" class="dashboard-error"></div>
+
+        <section class="revenue-stats">
+            <article class="revenue-card">
+                <span class="revenue-card-label">Общая прибыль</span>
+                <strong class="revenue-card-value" id="revenue-total">—</strong>
+                <span class="growth-positive" id="revenue-growth">—</span>
+            </article>
+            <article class="revenue-card">
+                <span class="revenue-card-label">Загруженность парковки</span>
+                <strong class="revenue-card-value" id="revenue-occupancy">—</strong>
+            </article>
+            <article class="revenue-card">
+                <span class="revenue-card-label">Всего сессий</span>
+                <strong class="revenue-card-value" id="revenue-sessions">—</strong>
+            </article>
+            <article class="revenue-card">
+                <span class="revenue-card-label">Средний чек</span>
+                <strong class="revenue-card-value" id="revenue-average">—</strong>
+            </article>
+        </section>
+
+        <section class="chart-panel">
+            <div class="panel-header"><h3>Динамика выручки</h3></div>
+            <div class="chart-wrap"><canvas id="revenue-chart"></canvas></div>
+        </section>
+
+        <section class="dashboard-panel">
+            <div class="panel-header"><h3>Последние транзакции</h3></div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Госномер</th><th>Длительность</th><th>Сумма</th><th>Статус</th><th>Дата и время</th></tr>
+                    </thead>
+                    <tbody id="transactions-body">
+                        <tr><td colspan="5" style="text-align:center">Загрузка данных…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let revenueChart;
+        const token = localStorage.getItem('smartpark_token');
+
+        async function loadRevenue(period) {
+            const errorBox = document.getElementById('dashboard-error');
+            try {
+                const response = await fetch('/api/admin/revenue?period=' + period, {
+                    headers: token ? {'Authorization': 'Bearer ' + token} : {}
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Не удалось загрузить данные');
+                errorBox.style.display = 'none';
+
+                document.getElementById('revenue-total').textContent = formatMoney(data.totalRevenue) + ' сум';
+                document.getElementById('revenue-growth').textContent =
+                    (data.growthPercentage >= 0 ? '+' : '') + data.growthPercentage + '% к предыдущему периоду';
+                document.getElementById('revenue-occupancy').textContent = data.occupancyRate + '%';
+                document.getElementById('revenue-sessions').textContent = data.totalSessions;
+                document.getElementById('revenue-average').textContent = formatMoney(data.averageCheck) + ' сум';
+
+                renderChart(data.chartData);
+                renderTransactions(data.recentTransactions);
+            } catch (error) {
+                errorBox.textContent = error.message;
+                errorBox.style.display = 'block';
+            }
+        }
+
+        function formatMoney(value) {
+            return new Intl.NumberFormat('ru-RU').format(value || 0);
+        }
+
+        function renderChart(chartData) {
+            const context = document.getElementById('revenue-chart');
+            if (revenueChart) revenueChart.destroy();
+            revenueChart = new Chart(context, {
+                type: 'line',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: 'Выручка',
+                        data: chartData.values,
+                        borderColor: '#a855f7',
+                        backgroundColor: 'rgba(168,85,247,.16)',
+                        fill: true,
+                        tension: 0.35,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#c084fc'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: { label: context => context.parsed.y.toLocaleString('ru-RU') + ' сум' }
+                        }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#a99fbd' }, grid: { color: 'rgba(255,255,255,.05)' } },
+                        y: {
+                            ticks: { color: '#a99fbd', callback: value => formatMoney(value) + ' сум' },
+                            grid: { color: 'rgba(255,255,255,.06)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderTransactions(transactions) {
+            const body = document.getElementById('transactions-body');
+            body.innerHTML = (transactions || []).map(transaction => `
+                <tr>
+                    <td><strong class="font-plate text-accent">${escapeHtml(transaction.plateNumber)}</strong></td>
+                    <td>${escapeHtml(transaction.duration)}</td>
+                    <td><strong>${formatMoney(transaction.amount)} сум</strong></td>
+                    <td><span class="panel-badge">${escapeHtml(transaction.status)}</span></td>
+                    <td>${new Date(transaction.createdAt).toLocaleString('ru-RU')}</td>
+                </tr>
+            `).join('');
+        }
+
+        function escapeHtml(value) {
+            const element = document.createElement('div');
+            element.textContent = value == null ? '' : String(value);
+            return element.innerHTML;
+        }
+
+        document.querySelectorAll('.period-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.period-btn').forEach(item => item.classList.remove('active'));
+                button.classList.add('active');
+                loadRevenue(button.dataset.period);
+            });
+        });
+
+        loadRevenue('month');
+    </script>
+</body>
+</html>
