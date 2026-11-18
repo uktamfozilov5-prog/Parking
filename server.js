@@ -13,6 +13,10 @@ if (fs.existsSync(envPath)) {
 const JWT_SECRET = process.env.JWT_SECRET || 'smart-parking-secret-key-2026';
 const PORT = process.env.PORT || 3000;
 
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+    throw new Error('В production необходимо задать переменную окружения JWT_SECRET.');
+}
+
 const app = express();
 
 // Middlewares
@@ -362,13 +366,17 @@ app.use((req, res) => {
 });
 
 // Start Server
-app.listen(PORT, () => {
-    console.log(`====================================================`);
-    console.log(`⚡ Смарт-Паркинг сервер запущен на порту: ${PORT}`);
-    console.log(`🌐 Откройте в браузере: http://localhost:${PORT}`);
-    console.log(`🔑 Тестовые аккаунты:`);
-    console.log(`   - Админ:     admin@parking.uz     / admin123`);
-    console.log(`   - EV Driver: driver.ev@parking.uz / driver123`);
-    console.log(`   - ДВС Driver: driver.std@parking.uz/ driver123`);
-    console.log(`====================================================`);
-});
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`====================================================`);
+        console.log(`⚡ Смарт-Паркинг сервер запущен на порту: ${PORT}`);
+        console.log(`🌐 Откройте в браузере: http://localhost:${PORT}`);
+        console.log(`🔑 Тестовые аккаунты:`);
+        console.log(`   - Админ:     admin@parking.uz     / admin123`);
+        console.log(`   - EV Driver: driver.ev@parking.uz / driver123`);
+        console.log(`   - ДВС Driver: driver.std@parking.uz/ driver123`);
+        console.log(`====================================================`);
+    });
+}
+
+module.exports = app;

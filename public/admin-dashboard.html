@@ -30,7 +30,7 @@
 </head>
 <body>
     <div class="ambient-glow glow-1"></div>
-    <main class="revenue-dashboard">
+    <main class="revenue-dashboard" hidden>
         <header class="revenue-header">
             <div>
                 <h1 class="view-title">📈 Дашборд выручки</h1>
@@ -88,6 +88,27 @@
     <script>
         let revenueChart;
         const token = localStorage.getItem('smartpark_token');
+
+        async function verifyAdmin() {
+            if (!token) {
+                window.location.replace('/');
+                return false;
+            }
+
+            try {
+                const response = await fetch('/api/auth/me', {
+                    headers: {'Authorization': 'Bearer ' + token}
+                });
+                if (!response.ok) throw new Error('Требуется вход администратора');
+                const data = await response.json();
+                if (!data.user || data.user.role !== 'admin') throw new Error('Доступ разрешён только администратору');
+                document.querySelector('.revenue-dashboard').hidden = false;
+                return true;
+            } catch (error) {
+                window.location.replace('/');
+                return false;
+            }
+        }
 
         async function loadRevenue(period) {
             const errorBox = document.getElementById('dashboard-error');
@@ -183,7 +204,9 @@
             });
         });
 
-        loadRevenue('month');
+        verifyAdmin().then(isAdmin => {
+            if (isAdmin) loadRevenue('month');
+        });
     </script>
 </body>
 </html>

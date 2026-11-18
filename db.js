@@ -1,8 +1,11 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const os = require('node:os');
 
-const DATA_DIR = path.join(__dirname, 'data');
+const DATA_DIR = process.env.AWS_LAMBDA_FUNCTION_NAME
+    ? path.join(os.tmpdir(), 'smart-parking-data')
+    : path.join(__dirname, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'parking-store.json');
 
 // Password hashing helper
