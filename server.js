@@ -274,20 +274,25 @@ app.get('/api/admin/revenue', authenticateToken, isAdmin, (req, res) => {
             }
         };
 
-        const receipts = db.getReceipts();
-        const recentTransactions = (receipts.length ? receipts : [
-            { carPlate: '01 A 777 AA', durationFormatted: '2 ч 15 мин', totalAmount: 16000, status: 'Оплачено', createdAt: new Date().toISOString() },
-            { carPlate: '10 B 204 BB', durationFormatted: '1 ч 30 мин', totalAmount: 8000, status: 'Оплачено', createdAt: new Date(Date.now() - 3600000).toISOString() },
-            { carPlate: '90 C 315 CC', durationFormatted: '3 ч 05 мин', totalAmount: 24000, status: 'Оплачено', createdAt: new Date(Date.now() - 7200000).toISOString() },
-            { carPlate: '01 D 908 DD', durationFormatted: '45 мин', totalAmount: 5000, status: 'Оплачено', createdAt: new Date(Date.now() - 10800000).toISOString() },
-            { carPlate: '30 E 126 EE', durationFormatted: '2 ч 00 мин', totalAmount: 16000, status: 'Возврат', createdAt: new Date(Date.now() - 14400000).toISOString() }
-        ]).slice(0, 5).map(receipt => ({
+        const now = Date.now();
+        const demoTransactions = [
+            { plateNumber: '01 A 777 AA', duration: '2 ч 15 мин', amount: 24000, status: 'Демо · Оплачено', createdAt: new Date(now - 5 * 60000).toISOString() },
+            { plateNumber: '10 B 204 BB', duration: '1 ч 30 мин', amount: 10000, status: 'Демо · Оплачено', createdAt: new Date(now - 24 * 60000).toISOString() },
+            { plateNumber: '90 C 315 CC', duration: '3 ч 05 мин', amount: 20000, status: 'Демо · Оплачено', createdAt: new Date(now - 48 * 60000).toISOString() },
+            { plateNumber: '01 D 908 DD', duration: '45 мин', amount: 5000, status: 'Демо · Оплачено', createdAt: new Date(now - 92 * 60000).toISOString() },
+            { plateNumber: '30 E 126 EE', duration: '2 ч 00 мин', amount: 16000, status: 'Демо · Возврат', createdAt: new Date(now - 145 * 60000).toISOString() }
+        ];
+
+        const receipts = db.getReceipts().map(receipt => ({
             plateNumber: receipt.carPlate || receipt.plateNumber,
             duration: receipt.durationFormatted || receipt.duration || '—',
             amount: receipt.totalAmount || receipt.amount || 0,
-            status: receipt.status || 'Оплачено',
+            status: 'Оплачено',
             createdAt: receipt.createdAt
         }));
+        const recentTransactions = [...receipts, ...demoTransactions]
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            .slice(0, 5);
 
         res.json({
             ...mockRevenue[period],
