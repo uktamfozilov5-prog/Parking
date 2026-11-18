@@ -3,6 +3,7 @@ const path = require('node:path');
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const db = require('./db');
+const { notifyAdmin } = require('./telegram');
 
 // Load environment variables (.env)
 const envPath = path.join(__dirname, '.env');
@@ -171,7 +172,7 @@ app.get('/api/spots/:id', (req, res) => {
 });
 
 // POST /api/spots/:id/park - Park a vehicle
-app.post('/api/spots/:id/park', authenticateToken, (req, res) => {
+app.post('/api/spots/:id/park', authenticateToken, async (req, res) => {
     try {
         const spotId = req.params.id;
         const { carPlate, carModel, carType, customEntryTime } = req.body;
@@ -192,6 +193,9 @@ app.post('/api/spots/:id/park', authenticateToken, (req, res) => {
             carType: effectiveType,
             customEntryTime
         });
+        await notifyAdmin(
+            `🚗 Въезд на парковку\nМесто: #${spotId}\nАвтомобиль: ${effectivePlate}\nВодитель: ${req.user.name}`
+        );
 
         res.json({
             message: `Автомобиль ${effectivePlate} успешно припаркован на место #${spotId}.`,
@@ -203,12 +207,15 @@ app.post('/api/spots/:id/park', authenticateToken, (req, res) => {
 });
 
 // POST /api/spots/:id/unpark - Vacate spot and generate detailed receipt
-app.post('/api/spots/:id/unpark', authenticateToken, (req, res) => {
+app.post('/api/spots/:id/unpark', authenticateToken, async (req, res) => {
     try {
         const spotId = req.params.id;
         const { simulatedExitMinutes } = req.body;
 
         const receipt = db.unparkVehicle(spotId, req.user, simulatedExitMinutes);
+        await notifyAdmin(
+            `✅ Выезд с парковки\nМесто: #${spotId}\nАвтомобиль: ${receipt.carPlate}\nДлительность: ${receipt.durationFormatted}\nСумма: ${receipt.totalAmount.toLocaleString('ru-RU')} сум`
+        );
         res.json({
             message: `Место #${spotId} освобождено. Расчет стоимости завершен.`,
             receipt
@@ -333,11 +340,14 @@ app.get('/api/admin/receipts', authenticateToken, requireAdmin, (req, res) => {
 });
 
 // POST /api/admin/spots/:id/force-release - Admin force unpark stuck spot
-app.post('/api/admin/spots/:id/force-release', authenticateToken, requireAdmin, (req, res) => {
+app.post('/api/admin/spots/:id/force-release', authenticateToken, requireAdmin, async (req, res) => {
     try {
         const spotId = req.params.id;
         const { simulatedExitMinutes } = req.body;
         const receipt = db.forceReleaseSpot(spotId, req.user, simulatedExitMinutes);
+        await notifyAdmin(
+            `⚠️ Администратор освободил место #${spotId}\nАвтомобиль: ${receipt.carPlate}\nСумма: ${receipt.totalAmount.toLocaleString('ru-RU')} сум`
+        );
         res.json({
             message: `Место #${spotId} принудительно освобождено администратором.`,
             receipt
@@ -348,9 +358,12 @@ app.post('/api/admin/spots/:id/force-release', authenticateToken, requireAdmin, 
 });
 
 // POST /api/admin/reset-all - Reset all spots (emergency release stuck spots)
-app.post('/api/admin/reset-all', authenticateToken, requireAdmin, (req, res) => {
+app.post('/api/admin/reset-all', authenticateToken, requireAdmin, async (req, res) => {
     try {
         const result = db.resetAllSpots(req.user);
+        if (result.releasedCount) {
+            await notifyAdmin(`⚠️ Выполнен сброс парковки. Освобождено мест: ${result.releasedCount}.`);
+        }
         res.json({
             message: `Сброс выполнен. Освобождено мест: ${result.releasedCount}.`,
             ...result
