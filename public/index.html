@@ -2,14 +2,21 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>SmartPark Pro — Интеллектуальная система управления парковкой</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <script>
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
+        }
+    </script>
     <!-- Background glowing ambient lights -->
     <div class="ambient-glow glow-1"></div>
     <div class="ambient-glow glow-2"></div>
@@ -47,6 +54,9 @@
             <div class="nav-auth" id="nav-auth-container">
                 <!-- Dynamically populated by JS (Login buttons or User Chip) -->
             </div>
+            <a class="telegram-link telegram-link-header" href="https://t.me/smartpark_official_bot" target="_blank" rel="noopener noreferrer">
+                Открыть в Telegram
+            </a>
         </div>
     </header>
 
@@ -296,7 +306,49 @@
                 </div>
             </div>
         </section>
+
+        <section class="request-section" aria-labelledby="request-title">
+            <div class="request-section-heading">
+                <span class="request-icon">🅿️</span>
+                <div>
+                    <h2 id="request-title">Оставить заявку</h2>
+                    <p>Мы свяжемся с вами для уточнения деталей парковки.</p>
+                </div>
+            </div>
+            <form id="request-form" class="request-form" novalidate>
+                <input type="text" id="request-website" name="website" class="honeypot" tabindex="-1" autocomplete="off" aria-hidden="true">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="request-name">Имя</label>
+                        <input type="text" id="request-name" name="name" class="form-input" maxlength="100" autocomplete="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="request-phone">Телефон</label>
+                        <input type="tel" id="request-phone" name="phone" class="form-input" maxlength="30" autocomplete="tel" inputmode="tel" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="request-car">Номер автомобиля</label>
+                    <input type="text" id="request-car" name="car" class="form-input" maxlength="30" autocomplete="off" required>
+                </div>
+                <div class="form-group">
+                    <label for="request-comment">Комментарий</label>
+                    <textarea id="request-comment" name="comment" class="form-input request-comment" maxlength="1000" rows="4"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" id="request-submit">Отправить</button>
+                <p id="request-status" class="request-status" role="status" aria-live="polite"></p>
+            </form>
+        </section>
     </main>
+
+    <footer class="site-footer">
+        <div class="footer-content">
+            <span>© <span id="footer-year"></span> SmartParking</span>
+            <a class="telegram-link" href="https://t.me/smartpark_official_bot" target="_blank" rel="noopener noreferrer">
+                Открыть в Telegram
+            </a>
+        </div>
+    </footer>
 
     <!-- ======================================================== -->
     <!-- MODALS -->

@@ -1376,6 +1376,84 @@ body {
 /* Utilities */
 .hidden { display: none !important; }
 
+/* Request form and Telegram button */
+.request-section {
+    margin: 30px 0;
+    padding: clamp(20px, 4vw, 32px);
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    backdrop-filter: blur(16px);
+}
+.request-section-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.request-section-heading h2 {
+    font-size: clamp(20px, 4vw, 24px);
+}
+.request-section-heading p {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+.request-icon {
+    font-size: 28px;
+}
+.request-form {
+    max-width: 760px;
+}
+.request-comment {
+    min-height: 110px;
+    resize: vertical;
+}
+.honeypot {
+    position: absolute !important;
+    left: -10000px !important;
+    width: 1px !important;
+    height: 1px !important;
+    opacity: 0 !important;
+}
+.request-status {
+    min-height: 24px;
+    margin-top: 12px;
+    font-weight: 700;
+}
+.request-status-success { color: var(--emerald-free); }
+.request-status-error { color: #fda4af; }
+.telegram-link {
+    min-height: 44px;
+    padding: 10px 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    background: #229ed9;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.telegram-link:hover { background: #35aee8; }
+.telegram-link-header { margin-left: 4px; }
+.site-footer {
+    border-top: 1px solid var(--border-light);
+    background: rgba(14, 9, 34, 0.8);
+}
+.footer-content {
+    max-width: 1400px;
+    min-height: 88px;
+    margin: 0 auto;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    color: var(--text-muted);
+}
+
 /* ========================================================
    Print Media Styles (Thermal Receipt only)
    ======================================================== */
@@ -1418,12 +1496,62 @@ body {
 }
 
 @media (max-width: 768px) {
-    .nav-container { flex-direction: column; align-items: stretch; }
-    .nav-links { justify-content: center; }
+    html, body { max-width: 100%; overflow-x: hidden; }
+    img, video, canvas { max-width: 100%; height: auto; }
+    .nav-container { flex-direction: column; align-items: stretch; padding: 12px 16px; }
+    .nav-links { justify-content: center; width: 100%; overflow-x: auto; }
+    .nav-btn { min-height: 44px; padding: 8px 10px; }
+    .nav-auth { width: 100%; }
+    .telegram-link-header { width: 100%; }
     .tariff-banner { grid-template-columns: 1fr; }
     .quick-stats-widget { grid-template-columns: repeat(2, 1fr); }
     .spots-grid.grid-ev { grid-template-columns: 1fr; }
     .spots-grid.grid-std { grid-template-columns: 1fr; }
     .stats-grid { grid-template-columns: 1fr; }
     .form-row { grid-template-columns: 1fr; }
+    .main-container { padding: 16px; }
+    .grid-controls, .zone-title-bar, .admin-header { align-items: flex-start; flex-direction: column; }
+    .grid-controls { gap: 12px; }
+    .zone-rule-tag { max-width: 100%; white-space: normal; }
+    .legend { gap: 10px; }
+    .modal-overlay { align-items: flex-end; padding: 0; }
+    .modal-box { max-height: calc(100dvh - 16px); overflow-y: auto; border-radius: 20px 20px 0 0; padding: 20px 16px calc(20px + env(safe-area-inset-bottom)); }
+    .modal-close-btn { width: 44px; height: 44px; top: 12px; right: 12px; }
+    .modal-actions, .receipt-actions { flex-direction: column-reverse; }
+    .modal-actions .btn, .receipt-actions .btn { width: 100%; }
+    .toast-container { top: 12px; left: 12px; right: 12px; }
+    .toast { max-width: none; min-width: 0; width: 100%; }
+    .footer-content { flex-direction: column; justify-content: center; text-align: center; padding: 20px 16px calc(20px + env(safe-area-inset-bottom)); }
+}
+
+@media (max-width: 380px) {
+    .brand-subtitle { display: none; }
+    .nav-links { gap: 4px; }
+    .nav-btn { flex: 1; font-size: 12px; }
+    .spots-grid { gap: 12px; }
+    .quick-stats-widget { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Touch targets and Telegram/OS theme compatibility */
+.btn,
+.nav-btn,
+.auth-tab-btn,
+.modal-close-btn,
+.form-input,
+.form-select,
+.request-comment,
+.telegram-link {
+    min-height: 44px;
+}
+.form-input,
+.form-select,
+.request-comment {
+    font-size: 16px;
+}
+
+@media (prefers-color-scheme: light) {
+    .telegram-light .navbar,
+    .telegram-light .site-footer {
+        background: color-mix(in srgb, var(--telegram-bg, #ffffff) 92%, transparent);
+    }
 }

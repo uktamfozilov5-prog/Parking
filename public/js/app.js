@@ -11,8 +11,75 @@ let autoRefreshInterval = null;
 
 // Initialize Application
 document.addEventListener('DOMContentLoaded', async () => {
+    initRequestForm();
+    initTelegramTheme();
+    const footerYear = document.getElementById('footer-year');
+    if (footerYear) footerYear.textContent = new Date().getFullYear();
     initApp();
 });
+
+function initTelegramTheme() {
+    if (!window.Telegram || !window.Telegram.WebApp) return;
+    const themeParams = window.Telegram.WebApp.themeParams || {};
+    if (themeParams.bg_color) document.documentElement.style.setProperty('--telegram-bg', themeParams.bg_color);
+    if (themeParams.text_color) document.documentElement.style.setProperty('--telegram-text', themeParams.text_color);
+    document.documentElement.classList.toggle('telegram-light', window.Telegram.WebApp.colorScheme === 'light');
+}
+
+function initRequestForm() {
+    const form = document.getElementById('request-form');
+    if (!form) return;
+
+    form.addEventListener('submit', async event => {
+        event.preventDefault();
+        const submitButton = document.getElementById('request-submit');
+        const status = document.getElementById('request-status');
+        const formData = new FormData(form);
+        const payload = {
+            name: String(formData.get('name') || '').trim(),
+            phone: String(formData.get('phone') || '').trim(),
+            car: String(formData.get('car') || '').trim(),
+            comment: String(formData.get('comment') || '').trim(),
+            website: String(formData.get('website') || '')
+        };
+
+        if (!payload.name || !payload.phone || !payload.car) {
+            status.textContent = 'Заполните имя, телефон и номер автомобиля.';
+            status.className = 'request-status request-status-error';
+            return;
+        }
+        if (payload.name.length > 100 || payload.phone.length > 30 || payload.car.length > 30 || payload.comment.length > 1000) {
+            status.textContent = 'Ошибка: проверьте длину заполненных полей.';
+            status.className = 'request-status request-status-error';
+            return;
+        }
+
+        submitButton.disabled = true;
+        submitButton.textContent = 'Отправка...';
+        status.textContent = '';
+        status.className = 'request-status';
+
+        try {
+            const response = await fetch('/.netlify/functions/send-request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'Ошибка отправки');
+
+            status.textContent = 'Заявка отправлена';
+            status.className = 'request-status request-status-success';
+            form.reset();
+        } catch (error) {
+            status.textContent = 'Ошибка, попробуйте ещё раз';
+            status.className = 'request-status request-status-error';
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Отправить';
+        }
+    });
+}
 
 async function initApp() {
     await checkAuth();
