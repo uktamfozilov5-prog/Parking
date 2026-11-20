@@ -1,52 +1,46 @@
 /* ========================================================
-   SmartPark Pro - Dark Purple Futuristic Theme
+   SmartPark Pro - Minimal Monochrome Theme
    ======================================================== */
 
 :root {
-    /* Color Palette */
-    --bg-base: #0c081e;
-    --bg-surface: #140d2e;
-    --bg-card: rgba(26, 17, 54, 0.72);
-    --bg-card-hover: rgba(38, 25, 78, 0.85);
-    --bg-glass: rgba(25, 17, 50, 0.65);
-    
-    /* Neon & Accent Colors */
-    --purple-primary: #8b5cf6;
-    --purple-glow: rgba(139, 92, 246, 0.35);
-    --purple-light: #c4b5fd;
-    --purple-dark: #6d28d9;
-    --accent-magenta: #d946ef;
-    
-    /* EV & Standard Specific Accents */
-    --ev-cyan: #06b6d4;
-    --ev-glow: rgba(6, 182, 212, 0.4);
-    --ev-bg: rgba(6, 182, 212, 0.12);
-    
-    --std-purple: #a855f7;
-    --std-glow: rgba(168, 85, 247, 0.35);
-    
-    /* Status Colors */
-    --emerald-free: #10b981;
-    --emerald-glow: rgba(16, 185, 129, 0.35);
-    --rose-occupied: #f43f5e;
-    --rose-glow: rgba(244, 63, 94, 0.35);
-    
-    /* Text Colors */
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-    --text-dim: #64748b;
-    
-    /* Borders & Outlines */
-    --border-light: rgba(168, 85, 247, 0.2);
-    --border-highlight: rgba(168, 85, 247, 0.45);
+    color-scheme: light;
+    --bg-base: #f5f5f5;
+    --bg-surface: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-hover: #fafafa;
+    --bg-glass: #ffffff;
+
+    --purple-primary: #171717;
+    --purple-glow: rgba(0, 0, 0, 0.08);
+    --purple-light: #404040;
+    --purple-dark: #171717;
+    --accent-magenta: #404040;
+
+    --ev-cyan: #404040;
+    --ev-glow: rgba(0, 0, 0, 0.08);
+    --ev-bg: #f5f5f5;
+    --std-purple: #404040;
+    --std-glow: rgba(0, 0, 0, 0.08);
+
+    --emerald-free: #404040;
+    --emerald-glow: rgba(0, 0, 0, 0.08);
+    --rose-occupied: #171717;
+    --rose-glow: rgba(0, 0, 0, 0.08);
+
+    --text-main: #171717;
+    --text-muted: #737373;
+    --text-dim: #a3a3a3;
+
+    --border-light: #e5e5e5;
+    --border-highlight: #a3a3a3;
     
     /* Typography & Radius */
     --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
-    --radius-sm: 8px;
-    --radius-md: 14px;
-    --radius-lg: 20px;
-    --radius-xl: 28px;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
     
     /* Transitions */
     --transition-fast: 0.18s ease;
@@ -1554,4 +1548,237 @@ body {
     .telegram-light .site-footer {
         background: color-mix(in srgb, var(--telegram-bg, #ffffff) 92%, transparent);
     }
+}
+
+/* Monochrome overrides for legacy component colors. */
+body {
+    background: var(--bg-base);
+}
+
+.ambient-glow {
+    display: none;
+}
+
+.navbar,
+.site-footer {
+    background: #fff;
+    border-color: var(--border-light);
+}
+
+.spot-number-huge,
+.brand-icon,
+.user-avatar,
+.btn-primary,
+.btn-primary:hover,
+.btn-accent,
+.btn-accent:hover,
+.nav-btn.active,
+.auth-tab-btn.active {
+    background: #171717;
+    color: #fff;
+    box-shadow: none;
+}
+
+.brand-icon,
+.user-avatar,
+.tariff-badge,
+.spot-type-tag,
+.panel-badge,
+.spot-free-icon,
+.kpi-icon,
+.ev-tariff,
+.standard-tariff,
+.spot-card.spot-occupied,
+.spot-card.spot-free,
+.radio-card,
+.cartype-radio input:checked + .radio-card,
+.modal-box,
+.modal-receipt-box,
+.toast,
+.dashboard-panel,
+.request-section {
+    background: #fff;
+    border-color: var(--border-light);
+    box-shadow: none;
+}
+
+.nav-links,
+.user-chip,
+.grid-controls,
+.session-live-stats,
+.auth-tabs,
+.demo-logins-box,
+.btn-demo,
+.btn-sim,
+.tariff-calculation-preview,
+.simulation-tool-box,
+.modal-close-btn,
+.zone-rule-tag,
+.spot-number-badge,
+.form-input,
+.form-select,
+.data-table th {
+    background: #f5f5f5;
+    border-color: var(--border-light);
+}
+
+.nav-btn:hover,
+.btn-secondary,
+.btn-secondary:hover,
+.btn-locked,
+.btn-demo:hover,
+.btn-sim:hover,
+.modal-close-btn:hover {
+    background: #e5e5e5;
+    color: #171717;
+    border-color: #d4d4d4;
+    box-shadow: none;
+}
+
+.btn-danger,
+.btn-danger:hover,
+.btn-unpark-now,
+.btn-park-now,
+.btn-park-now:hover {
+    background: #f5f5f5;
+    color: #171717;
+    border: 1px solid #d4d4d4;
+    box-shadow: none;
+}
+
+.ev-tariff::before,
+.standard-tariff::before {
+    background: #171717;
+    box-shadow: none;
+}
+
+.ev-badge,
+.std-badge,
+.spot-type-tag.ev,
+.spot-type-tag.standard,
+.spot-type-pill.ev-pill,
+.spot-type-pill.std-pill,
+.panel-badge,
+.cartype-radio input:checked + .radio-card {
+    background: #f5f5f5;
+    color: #404040;
+    border-color: #d4d4d4;
+    box-shadow: none;
+}
+
+.dot,
+.spot-free-icon {
+    filter: grayscale(1);
+    box-shadow: none;
+}
+
+.btn-icon,
+.icon-bolt,
+.zone-icon,
+.kpi-icon,
+.request-icon,
+.radio-icon {
+    filter: grayscale(1);
+}
+
+.spot-card.spot-occupied:hover,
+.spot-card.spot-free:hover {
+    border-color: #a3a3a3;
+    box-shadow: none;
+}
+
+.spot-free-icon {
+    border-style: solid;
+    border-color: #d4d4d4;
+    color: #404040;
+}
+
+.spot-free-status,
+.ticker-val,
+.cost-val,
+.brand-title,
+.user-name,
+.zone-title h3,
+.view-title,
+.panel-header h3,
+.kpi-value,
+.price-val,
+.car-model-name,
+.modal-title,
+.radio-title,
+.text-emerald,
+.text-rose,
+.text-cyan,
+.text-accent,
+.user-role-tag,
+.demo-title,
+.simulation-tool-box summary,
+.sim-status-label {
+    color: #404040;
+}
+
+.form-input,
+.form-select {
+    color: #171717;
+}
+
+.form-input:focus,
+.form-select:focus {
+    border-color: #737373;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08);
+}
+
+.alert-ev,
+.error-msg-box {
+    background: #f5f5f5;
+    color: #404040;
+    border-color: #d4d4d4;
+}
+
+.alert-text strong {
+    color: #171717;
+}
+
+.toast-success,
+.toast-error {
+    border-color: #a3a3a3;
+}
+
+.telegram-link,
+.telegram-link:hover {
+    background: #171717;
+    color: #fff;
+}
+
+.request-status-success,
+.request-status-error {
+    color: #404040;
+}
+
+.uz-flag-strip {
+    color: #171717;
+}
+
+.rec-total-amount {
+    color: #171717;
+}
+
+.admin-badge {
+    background: #171717;
+}
+
+.data-table td {
+    border-color: #f0f0f0;
+}
+
+.data-table tr:hover td {
+    background: #fafafa;
+}
+
+button:focus-visible,
+a:focus-visible,
+.form-input:focus-visible,
+.form-select:focus-visible {
+    outline: 2px solid #171717;
+    outline-offset: 2px;
 }
